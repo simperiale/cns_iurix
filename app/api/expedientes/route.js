@@ -31,7 +31,7 @@ export async function POST(req) {
 
   try {
     const response = await fetch(
-      "https://iurix-api-interop.unitech.pjm.gob.ar/app/expedientes/getExpedientes?pagina=1&tamanio=10",
+      "https://iurix-api-interop.unitech.pjm.gob.ar/app/expedientes/getListadoExpedientes?pagina=1&tamanio=10",
       {
         method: "POST",
         headers: {

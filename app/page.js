@@ -1,132 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import Link from "next/link";
 
 function Header({ title }) {
   return <h1>{title ? title : "Sistema Judicial - Expedientes"}</h1>;
 }
 
 export default function HomePage() {
-  const [form, setForm] = useState({
-    fechaDesde: "",
-    fechaHasta: "",
-    numeroExpediente: "",
-    cuij: "",
-    anioCausa: "",
-  });
-
-  const [expedientes, setExpedientes] = useState([]);
-  const [error, setError] = useState(null);
-  const [loading, setLoading] = useState(false);   
-  
-  useEffect(() => {
-    async function obtenerToken() {
-      try {
-        console.log("🔄 Verificando si hay token en cookies...");
-        const res = await fetch("/api/auth/token");
-        if (!res.ok) {
-          console.warn("No se encontró token en cookies");
-          return;
-        }
-        const data = await res.json();
-        if (data.token) {
-          localStorage.setItem("jwt_token", data.token);
-          console.log("🔐 Token guardado en localStorage");
-        }
-      } catch (err) {
-        console.error("Error al obtener el token:", err);
-      }
-    }
-
-    obtenerToken();
-  }, []); // ← solo se ejecuta una vez al montar
-
-  function handleClick() {
-    console.log("✅ Botón funcionando en cliente");
-  }
-
-  // ✅ ACÁ podés declarar la función para enviar mensaje al bot
-  async function enviarMensajeAlBot1(mensaje) {
-    console.log("🟢 Entrando a enviarMensajeAlBot con mensaje:", mensaje);
-  }
-
-async function enviarMensajeAlBot(mensaje) {
-  console.log("🟢 Enviando mensaje al bot:", mensaje);
-
-  const token = localStorage.getItem("jwt_token");
-  if (!token) {
-    console.warn("No hay token disponible");
-    return { error: "Usuario no autenticado" };
-  }
-
-  try {
-    const res = await fetch("https://api.botmaker.com/v2.0/externals/messages", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "access-token": "TU_ACCESS_TOKEN_DE_BOTMAKER" // ⚠️ reemplazá con tu token de API de Botmaker
-      },
-      body: JSON.stringify({
-        platform: "whatsapp", // o "webchat" según el canal
-        customer: {
-          phoneNumber: "2616768030", // o email, o ID del usuario según el canal
-          name: "Usuario Next.js",
-          extras: {
-            jwt_token: token // 👈 Aquí mandás el token a Botmaker
-          }
-        },
-        message: {
-          text: mensaje
-        }
-      }),
-    });
-
-    const data = await res.json();
-    console.log("📩 Respuesta de Botmaker:", data);
-    return data;
-
-  } catch (err) {
-    console.error("Error al enviar mensaje al bot:", err);
-    return { error: "No se pudo contactar al bot" };
-  }
-}
-
-
-
-
-  // 🔹 Ejemplo: podrías llamar al bot después de consultar expedientes
-  async function handleSubmit(e) {
-    e.preventDefault();
-    setError(null);
-    setExpedientes([]);
-    setLoading(true);
-
-    try {
-      const res = await fetch("/api/expedientes", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) throw new Error(data.error || "Error al obtener expedientes");
-
-      if (data.expedientes?.length > 0) {
-        setExpedientes(data.expedientes);
-
-        // 👇 ejemplo: notificar al bot del resultado
-        await enviarMensajeAlBot(`Se consultaron ${data.expedientes.length} expedientes.`);
-      } else {
-        setError("No se encontraron expedientes con esos filtros.");
-      }
-    } catch (err) {
-      console.error("Error al consultar:", err);
-      setError("Debe iniciar sesión o hubo un error en la consulta.");
-    } finally {
-      setLoading(false);
-    }
-  }
 
   return (
     <main style={{ padding: 20 }}>
@@ -136,52 +16,88 @@ async function enviarMensajeAlBot(mensaje) {
         <a href="/api/auth/login">Iniciar sesión</a> |{" "}
         <a href="/api/auth/logout">Cerrar sesión</a>
       </div>
-      
-      {/* FORMULARIO */}
-      <section style={{ marginTop: 30 }}>
-        <h2>Buscar Expedientes</h2>
-        <form onSubmit={handleSubmit} style={{ marginTop: 15 }}>
-          {/* ... tu formulario original ... */}
-          <button
-            type="submit"
-            style={{
-              marginTop: 10,
-              padding: "6px 12px",
-              background: "#0070f3",
-              color: "white",
-              border: "none",
-              borderRadius: 4,
-            }}
-            disabled={loading}
-          >
-            {loading ? "Consultando..." : "Buscar"}
-          </button>
-          
-        </form>
-      </section>
-      
 
-      {/* RESULTADOS */}
-      <section style={{ marginTop: 30 }}>
-        <h2>Listado de Expedientes</h2>
-        {error && <p style={{ color: "red" }}>{error}</p>}
-
-        {!loading && expedientes.length > 0 && (
-          <ul style={{ listStyle: "none", padding: 0 }}>
-            {expedientes.map((exp, i) => (
-              <li key={i} style={{ border: "1px solid #ddd", borderRadius: 6, padding: "10px", marginBottom: "10px" }}>
-                <strong>Número:</strong> {exp.numeroExp} <br />
-                <strong>Año:</strong> {exp.anioExp || exp.anioCausa} <br />
-                <strong>Cuij:</strong> {exp.cuijExp} <br />
-                <strong>Carátula:</strong> {exp.caratulaExp || "Sin nombre"} <br />
-                <strong>Juzgado:</strong> {exp.juzgadoExp || "Sin nombre"} <br />
-                <strong>Fecha de inicio:</strong> {exp.fechaInicioExp} <br />
-                <strong>Circunscripcion:</strong> {exp.circunscripcion} <br />
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
+      {/* MENÚ DE NAVEGACIÓN */}
+      <nav style={{ marginTop: 20, padding: "15px", background: "#f5f5f5", borderRadius: 6 }}>
+        <h3 style={{ marginTop: 0 }}>Consultas Disponibles</h3>
+        <ul style={{ listStyle: "none", padding: 0, display: "flex", flexWrap: "wrap", gap: "10px" }}>
+          <li>
+            <Link 
+              href="/buscar-expedientes" 
+              style={{ 
+                padding: "8px 16px", 
+                background: "#0070f3", 
+                color: "white", 
+                textDecoration: "none", 
+                borderRadius: 4,
+                display: "inline-block"
+              }}
+            >
+              Buscar Expedientes
+            </Link>
+          </li>
+          <li>
+            <Link 
+              href="/mis-causas" 
+              style={{ 
+                padding: "8px 16px", 
+                background: "#0070f3", 
+                color: "white", 
+                textDecoration: "none", 
+                borderRadius: 4,
+                display: "inline-block"
+              }}
+            >
+              Mis Causas
+            </Link>
+          </li>
+          <li>
+            <span 
+              style={{ 
+                padding: "8px 16px", 
+                background: "#ccc", 
+                color: "#666", 
+                borderRadius: 4,
+                display: "inline-block",
+                cursor: "not-allowed"
+              }}
+              title="Próximamente"
+            >
+              Lista Diaria
+            </span>
+          </li>
+          <li>
+            <span 
+              style={{ 
+                padding: "8px 16px", 
+                background: "#ccc", 
+                color: "#666", 
+                borderRadius: 4,
+                display: "inline-block",
+                cursor: "not-allowed"
+              }}
+              title="Próximamente"
+            >
+              Partes de Expediente
+            </span>
+          </li>
+          <li>
+            <Link 
+              href="/detalle-expediente" 
+              style={{ 
+                padding: "8px 16px", 
+                background: "#0070f3", 
+                color: "white", 
+                textDecoration: "none", 
+                borderRadius: 4,
+                display: "inline-block"
+              }}
+            >
+              Detalle de Expediente
+            </Link>
+          </li>
+        </ul>
+      </nav>
     </main>
   );
 }
