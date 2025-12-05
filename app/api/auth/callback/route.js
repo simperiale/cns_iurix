@@ -11,10 +11,16 @@ export async function GET(req) {
     });
   }
 
+  // Obtener la URL base desde la request o variable de entorno
+  const urlObj = new URL(req.url);
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 
+                  (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 
+                  `${urlObj.protocol}//${urlObj.host}`);
+  
   // Datos del proveedor
   const tokenUrl = "https://auth.pjm.gob.ar/auth/realms/IOL/protocol/openid-connect/token";
   const clientId = "app_mobile";
-  const redirectUri = "http://localhost:3000/api/auth/callback";
+  const redirectUri = `${baseUrl}/api/auth/callback`;
 
   // Enviamos el intercambio de código por token
   const body = new URLSearchParams({
