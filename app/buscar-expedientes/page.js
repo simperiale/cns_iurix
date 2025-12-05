@@ -59,19 +59,31 @@ export default function BuscarExpedientesPage() {
         body: JSON.stringify(form),
       });
 
-      const data = await res.json();
+      // Verificar si la respuesta es ok antes de parsear JSON
+      if (!res.ok) {
+        let errorMessage = "Error al obtener expedientes";
+        try {
+          const errorData = await res.json();
+          errorMessage = errorData.error || errorMessage;
+        } catch (e) {
+          // Si no se puede parsear como JSON, usar el status text
+          errorMessage = `Error ${res.status}: ${res.statusText || errorMessage}`;
+        }
+        throw new Error(errorMessage);
+      }
 
-      if (!res.ok) throw new Error(data.error || "Error al obtener expedientes");
+      const data = await res.json();
 
       if (data.expedientes?.length > 0) {
         setExpedientes(data.expedientes);
         //await enviarMensajeAlBot(`Se consultaron ${data.expedientes.length} expedientes.`);
       } else {
+        setExpedientes([]);
         setError("No se encontraron expedientes con esos filtros.");
       }
     } catch (err) {
       console.error("Error al consultar:", err);
-      setError("Debe iniciar sesión o hubo un error en la consulta.");
+      setError(err.message || "Debe iniciar sesión o hubo un error en la consulta.");
     } finally {
       setLoading(false);
     }
@@ -300,11 +312,15 @@ export default function BuscarExpedientesPage() {
                 <strong>Cuij:</strong> {exp.cuijExp} <br />
                 <strong>Carátula:</strong> {exp.caratulaExp || "Sin nombre"} <br />
                 <strong>Fuero:</strong> {exp.fuero || "N/A"} <br />
+                <strong>Circunscripción:</strong> {exp.circunscripcion || "N/A"} <br />
+                <strong>Magistrado:</strong> {exp.magistrado || "N/A"} <br />
                 <strong>Tribunal de Radicación:</strong> {exp.tribunalDeRadicacion || "Sin nombre"} <br />
                 <strong>Fecha de inicio:</strong> {exp.fechaInicioExp || "N/A"} <br />
                 <strong>Nivel de Acceso:</strong> {exp.nivelAccesoExp || "N/A"} <br />
-                {exp.favorito && <span style={{ color: "gold" }}>⭐ Favorito</span>}
-                {exp.usuarioVinculado && <span style={{ color: "green", marginLeft: "10px" }}>✓ Usuario Vinculado</span>}
+                <div style={{ marginTop: "5px" }}>
+                  {exp.favorito && <span style={{ color: "gold" }}>⭐ Favorito</span>}
+                  {exp.usuarioVinculado && <span style={{ color: "green", marginLeft: "10px" }}>✓ Usuario Vinculado</span>}
+                </div>
               </li>
             ))}
           </ul>

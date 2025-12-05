@@ -8,26 +8,37 @@ export async function POST(req) {
   }
 
   const bodyData = await req.json();
+  // Mapear campos del formulario a los nombres que espera la API
   const {
-    fechaDesde = "",
-    fechaHasta = "",
-    numeroExpediente = "",
-    cuij = "",
-    anioCausa = "",
-    caratulaExpediente = "",
-    misCausas = false,
+    fechaDesde = "",        // del formulario -> presentadoDesde en API
+    fechaHasta = "",        // del formulario -> presentadoHasta en API
+    numeroExpediente = "",  // del formulario -> numero en API
+    cuij = "",              // del formulario -> cuij en API (igual)
+    anioCausa = "",         // del formulario -> anio en API
+    caratulaExpediente = "", // del formulario -> caratula en API
+    misCausas = "false",      // del formulario -> MisCausas en API
   } = bodyData;
 
-  const body = new URLSearchParams({
-    fechaDesde,
-    fechaHasta,
-    misCausas: misCausas ? "true" : "false",
-    anioCausa,
-  });
-
-  if (numeroExpediente) body.append("numeroExpediente", numeroExpediente);
-  if (cuij) body.append("cuij", cuij);
-  if (caratulaExpediente) body.append("caratulaExpediente", caratulaExpediente);
+  // Construir el body con los nombres que espera la API
+  // Solo enviar campos que tengan valor (no vacíos, no null, no undefined)
+  const body = new URLSearchParams();
+  
+  // Helper para verificar si un campo tiene valor
+  const hasValue = (value) => {
+    return value !== null && value !== undefined && value !== "" && String(value).trim() !== "";
+  };
+  
+  // Solo agregar campos que tengan valor
+  if (hasValue(fechaDesde)) body.append("presentadoDesde", fechaDesde.trim());
+  if (hasValue(fechaHasta)) body.append("presentadoHasta", fechaHasta.trim());
+  if (hasValue(anioCausa)) body.append("anio", anioCausa.toString().trim());
+  if (hasValue(numeroExpediente)) body.append("numero", numeroExpediente);
+  if (hasValue(cuij)) body.append("cuij", cuij.trim());
+  if (hasValue(caratulaExpediente)) body.append("caratula", caratulaExpediente.toUpperCase());
+  
+  // MisCausas siempre se envía (aunque sea false)
+  body.append("misCausas", misCausas === "true" ? "true" : "false");  
+  console.log("🔍 Parámetros enviados a la API:", body.toString());
 
   try {
     const response = await fetch(
@@ -42,21 +53,30 @@ export async function POST(req) {
       }
     );
 
+   
     if (response.status === 204) {
       return Response.json({ expedientes: [] });
     }
 
     const text = await response.text();
-    if (!text) {
-      return Response.json({ error: "Respuesta vacía del servidor externo" }, { status: 502 });
+    
+    if (!text || text.trim() === "") {
+      return Response.json({ 
+        error: `Respuesta vacía del servidor externo (Status: ${response.status})` 
+      }, { status: 502 });
     }
 
-    const data = JSON.parse(text);
-    return Response.json(data);
+    try {
+      const data = JSON.parse(text);
+      return Response.json(data);
+    } catch (parseError) {
+      return Response.json({ 
+        error: `Error al procesar la respuesta del servidor: ${parseError.message}` 
+      }, { status: 502 });
+    }
   } catch (error) {
-    console.error("Error al obtener expedientes:", error);
     return Response.json(
-      { error: "Error al comunicarse con el servicio de expedientes" },
+      { error: `Error al comunicarse con el servicio de expedientes: ${error.message}` },
       { status: 500 }
     );
   }

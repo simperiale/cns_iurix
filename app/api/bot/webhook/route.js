@@ -136,15 +136,38 @@ export async function POST(req) {
     const exp = expedientesFiltrados[0];
     let reply = `📄 *Expediente encontrado*\n\n`;
     reply += `*Carátula:* ${exp.caratulaExp || "N/A"}\n`;
-    reply += `*CUij:* ${exp.cuijExp || "N/A"}\n`;
-    reply += `*Año:* ${exp.anioExp || "N/A"}\n`;
-    reply += `*Juzgado:* ${exp.juzgadoExp || "N/A"}\n`;
+    reply += `*CUIJ:* ${exp.cuijExp || "N/A"}\n`;
     
     if (exp.numeroExp) {
       reply += `*Número:* ${exp.numeroExp}\n`;
     }
-    if (exp.fechaInicio) {
-      reply += `*Fecha de inicio:* ${exp.fechaInicio}\n`;
+    if (exp.anioExp) {
+      reply += `*Año:* ${exp.anioExp}\n`;
+    }
+    if (exp.fuero) {
+      reply += `*Fuero:* ${exp.fuero}\n`;
+    }
+    if (exp.circunscripcion) {
+      reply += `*Circunscripción:* ${exp.circunscripcion}\n`;
+    }
+    if (exp.magistrado) {
+      reply += `*Magistrado:* ${exp.magistrado}\n`;
+    }
+    if (exp.tribunalDeRadicacion) {
+      reply += `*Tribunal de Radicación:* ${exp.tribunalDeRadicacion}\n`;
+    }
+    if (exp.fechaInicioExp || exp.fechaInicio) {
+      reply += `*Fecha de inicio:* ${exp.fechaInicioExp || exp.fechaInicio}\n`;
+    }
+    if (exp.nivelAccesoExp) {
+      reply += `*Nivel de Acceso:* ${exp.nivelAccesoExp}\n`;
+    }
+    
+    if (exp.favorito) {
+      reply += `⭐ *Favorito*\n`;
+    }
+    if (exp.usuarioVinculado) {
+      reply += `✓ *Usuario Vinculado*\n`;
     }
 
     if (expedientesFiltrados.length > 1) {
