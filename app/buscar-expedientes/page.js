@@ -44,46 +44,8 @@ export default function BuscarExpedientesPage() {
     obtenerToken();
   }, []);
 
-  async function enviarMensajeAlBot(mensaje) {
-    console.log("🟢 Enviando mensaje al bot:", mensaje);
 
-    const token = localStorage.getItem("jwt_token");
-    if (!token) {
-      console.warn("No hay token disponible");
-      return { error: "Usuario no autenticado" };
-    }
-
-    try {
-      const res = await fetch("https://api.botmaker.com/v2.0/externals/messages", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "access-token": "TU_ACCESS_TOKEN_DE_BOTMAKER",
-        },
-        body: JSON.stringify({
-          platform: "whatsapp",
-          customer: {
-            phoneNumber: "2616768030",
-            name: "Usuario Next.js",
-            extras: {
-              jwt_token: token,
-            },
-          },
-          message: {
-            text: mensaje,
-          },
-        }),
-      });
-
-      const data = await res.json();
-      console.log("📩 Respuesta de Botmaker:", data);
-      return data;
-    } catch (err) {
-      console.error("Error al enviar mensaje al bot:", err);
-      return { error: "No se pudo contactar al bot" };
-    }
-  }
-
+    
   async function handleSubmit(e) {
     e.preventDefault();
     setError(null);
@@ -103,7 +65,7 @@ export default function BuscarExpedientesPage() {
 
       if (data.expedientes?.length > 0) {
         setExpedientes(data.expedientes);
-        await enviarMensajeAlBot(`Se consultaron ${data.expedientes.length} expedientes.`);
+        //await enviarMensajeAlBot(`Se consultaron ${data.expedientes.length} expedientes.`);
       } else {
         setError("No se encontraron expedientes con esos filtros.");
       }
